@@ -13,6 +13,7 @@ from evaluation import get_f1, get_macro_f1
 from model import REModel
 from torch.cuda.amp import GradScaler
 import wandb
+import time
 
 
 def train(args, model, train_features, benchmarks):
@@ -189,9 +190,11 @@ def main():
         ("dev", dev_features),
         ("test", test_features),
     )
-
+    since = time.time()
     train(args, model, train_features, benchmarks)
-
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
 
 if __name__ == "__main__":
     main()
