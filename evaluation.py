@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import f1_score, recall_score, precision_score, classification_report
 
-def get_f1(key, prediction):
+def get_f1(args,key, prediction):
     correct_by_relation = ((key == prediction) & (prediction != 0)).astype(np.int32).sum()
     guessed_by_relation = (prediction != 0).astype(np.int32).sum()
     gold_by_relation = (key != 0).astype(np.int32).sum()
@@ -15,7 +15,12 @@ def get_f1(key, prediction):
     f1_micro = 0.0
     if prec_micro + recall_micro > 0.0:
         f1_micro = 2.0 * prec_micro * recall_micro / (prec_micro + recall_micro)
-    with open('./dataset/rels.txt','r') as fp:
+    relation_labels = ''
+    if 'literature' in args.data_dir:
+        relation_labels = "dataset/literature/rels.txt"
+    elif 'FinRE' in args.data_dir:
+        relation_labels = "dataset/FinRE/rels.txt"
+    with open(relation_labels,'r') as fp:
         labels = fp.read().strip().split('\n')  
     macro_p, macro_r, macro_f1 = get_macro_f1(key, prediction, labels)
     return prec_micro, recall_micro, f1_micro, macro_p, macro_r, macro_f1

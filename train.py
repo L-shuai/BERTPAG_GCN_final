@@ -97,7 +97,7 @@ def evaluate(args, model, features, tag='dev'):
 
     keys = np.array(keys, dtype=np.int64)
     preds = np.array(preds, dtype=np.int64)
-    p, r, max_f1, macro_p, macro_r, macro_f1 = get_f1(keys, preds)
+    p, r, max_f1, macro_p, macro_r, macro_f1 = get_f1(args,keys, preds)
 
     output = {
         tag + "_micro_p": p * 100,
