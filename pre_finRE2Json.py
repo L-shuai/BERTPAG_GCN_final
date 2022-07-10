@@ -92,6 +92,44 @@ def read_text(fname):
         # f.write(aspect + '\n')
         # f.write(polarity + '\n')
 
+
+
+def get_labels(fname):
+    # fin = open("dataset/FinRE/relation2id.txt", 'r', encoding='utf-8', newline='\n', errors='ignore')
+    # lines = fin.readlines()
+    # fin.close()
+    # # id = -1
+    # text = ''
+    # print("len = ", len(lines))
+    # label_list = []
+    # for i in range(0, len(lines)):
+    #     arrs = lines[i].split()
+    #     line = '"' + arrs[0] + '":' + ' ' + arrs[1] + ','
+    #     label_list.append(arrs[0])
+    # print(label_list)
+    dict = {"unknown": 1,"注资": 1,"拥有": 2,"纠纷": 3,"自己": 4,"增持": 5,"重组": 6,"买资": 7,"签约": 8,"持股": 9,"交易": 10,"入股": 11,"转让": 12,"成立": 13,"分析": 14,"合作": 15,"帮助": 16,"发行": 17,"商讨": 18,"合并": 19,"竞争": 20,"订单": 21,"减持": 22,"合资": 23,"收购": 24,"借壳": 25,"欠款": 26,"被发行": 27,"被转让": 28,"被成立": 29,"被注资": 30,"被持股": 31,"被拥有": 32,"被收购": 33,"被帮助": 34,"被借壳": 35,"被买资": 36,"被欠款": 37,"被增持": 38,"拟收购": 39,"被减持": 40,"被分析": 41,"被入股": 42,"被拟收购": 43}
+
+    text = ''
+    fin = open(fname, 'r', encoding='utf-8', newline='\n', errors='ignore')
+    lines = fin.readlines()
+    fin.close()
+    id = -1
+    text_json = '['
+    print("len = ",len(lines))
+    for i in range(0, len(lines),2):
+        # print(lines[i].strip())
+        line = lines[i].strip()
+
+        arrs = line.split('\t')
+        subj = arrs[0]
+        obj = arrs[1]
+        relation = arrs[2]
+        dict[relation]=-1
+
+    print(dict)
+    for key in dict:
+        if dict[key]>0:
+            print(key)
 if __name__ == '__main__':
     fname =  {
     'train': './dataset/FinRE/train.txt',
@@ -99,4 +137,5 @@ if __name__ == '__main__':
     'dev': './dataset/FinRE/dev.txt'
     }
     # print(fname['dev'])
-    read_text(fname['train'])
+    # read_text(fname['train'])
+    get_labels(fname['dev'])
