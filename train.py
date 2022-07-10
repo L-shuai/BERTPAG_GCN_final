@@ -114,8 +114,17 @@ def evaluate(args, model, features, tag='dev'):
 def main():
     parser = argparse.ArgumentParser()
 
+    dataset = "./dataset/literature"
+    # dataset = "./dataset/FinRE"
     # parser.add_argument("--data_dir", default="./dataset/literature", type=str)
-    parser.add_argument("--data_dir", default="./dataset/FinRE", type=str)
+    parser.add_argument("--data_dir", default=dataset, type=str)
+    if "literature" in dataset:
+        parser.add_argument("--num_class", type=int, default=10)
+    elif "FinRE" in dataset:
+        parser.add_argument("--num_class", type=int, default=44)
+
+    # parser.add_argument("--num_class", type=int, default=10)
+    # parser.add_argument("--num_class", type=int, default=44)
     parser.add_argument("--model_name_or_path",
                         default="roberta-large", type=str)
     # parser.add_argument("--input_format", default="typed_entity_marker_punct", type=str,
@@ -149,8 +158,6 @@ def main():
                         help="Total number of training epochs to perform.")
     parser.add_argument("--seed", type=int, default=42,
                         help="random seed for initialization")
-    # parser.add_argument("--num_class", type=int, default=10)
-    parser.add_argument("--num_class", type=int, default=44)
     parser.add_argument("--evaluation_steps", type=int, default=100,
                         help="Number of steps to evaluate the model")
 
