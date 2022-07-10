@@ -121,7 +121,7 @@ def main():
     if "literature" in dataset:
         parser.add_argument("--num_class", type=int, default=10)
     elif "FinRE" in dataset:
-        parser.add_argument("--num_class", type=int, default=44)
+        parser.add_argument("--num_class", type=int, default=42)
 
     # parser.add_argument("--num_class", type=int, default=10)
     # parser.add_argument("--num_class", type=int, default=44)
