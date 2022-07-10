@@ -114,7 +114,8 @@ def evaluate(args, model, features, tag='dev'):
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--data_dir", default="./dataset/literature", type=str)
+    # parser.add_argument("--data_dir", default="./dataset/literature", type=str)
+    parser.add_argument("--data_dir", default="./dataset/FinRE", type=str)
     parser.add_argument("--model_name_or_path",
                         default="roberta-large", type=str)
     parser.add_argument("--input_format", default="typed_entity_marker_punct", type=str,

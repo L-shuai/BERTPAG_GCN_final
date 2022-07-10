@@ -84,8 +84,13 @@ class MathProcessor(Processor):
         super().__init__(args, tokenizer)
         # self.LABEL_TO_ID = {"依赖":  0, "被依赖": 1, "属于":  2, "包含":  3,
         #                     "反义":  4, "近义":  5, "属性":  6, "拥有":  7, "同位":  8, "无关":  9}
-        self.LABEL_TO_ID = {"unknown":  0, "Create": 1, "Use":  2, "Near":  3,
+        if 'literature' in args.data_dir:
+            print("dataset:literature")
+            self.LABEL_TO_ID = {"unknown":  0, "Create": 1, "Use":  2, "Near":  3,
                             "Social":  4, "Located":  5, "Ownership":  6, "General-Special":  7, "Family":  8, "Part-Whole":  9}
+        elif 'FinRE' in args.data_dir:
+            print("dataset:FinRE")
+            self.LABEL_TO_ID = {"unknown": 0,"注资": 1,"拥有": 2,"纠纷": 3,"自己": 4,"增持": 5,"重组": 6,"买资": 7,"签约": 8,"持股": 9,"交易": 10,"入股": 11,"转让": 12,"成立": 13,"分析": 14,"合作": 15,"帮助": 16,"发行": 17,"商讨": 18,"合并": 19,"竞争": 20,"订单": 21,"减持": 22,"合资": 23,"收购": 24,"借壳": 25,"欠款": 26,"被发行": 27,"被转让": 28,"被成立": 29,"被注资": 30,"被持股": 31,"被拥有": 32,"被收购": 33,"被帮助": 34,"被借壳": 35,"被买资": 36,"被欠款": 37,"被增持": 38,"拟收购": 39,"被减持": 40,"被分析": 41,"被入股": 42,"被拟收购": 43}
 
     def read(self, file_in):
         features = []
