@@ -14,7 +14,23 @@ from model import REModel
 from torch.cuda.amp import GradScaler
 import wandb
 import time
+#         add WxPusher
+import requests
+import json
 
+# wxpusher
+headers = {'content-type': "application/json"}
+body = {
+  "appToken":"AT_ovoKNeFYClICWUKHnbF3BhYLkflxjy77",
+  "content":"acc=",
+  "summary":"BERT_PAG",
+  "contentType":1,
+  "topicIds":[],
+  "uids":["UID_YicrCnEFRs6teHjQXis8EQ9nVoY3"]
+}
+
+torch.backends.cudnn.enable=True
+torch.backends.cudnn.benchmark=True
 
 def train(args, model, train_features, benchmarks):
     train_dataloader = DataLoader(train_features, batch_size=args.train_batch_size,
@@ -45,7 +61,8 @@ def train(args, model, train_features, benchmarks):
                       'oe': batch[6].to(args.device),
                       'pos1': batch[7].to(args.device),
                       'pos2': batch[8].to(args.device),
-                      'mask': batch[9].to(args.device)
+                      'mask': batch[9].to(args.device),
+                      'matrix': batch[10].to(args.device)
                       }
             outputs = model(**inputs)
             loss = outputs[0] / args.gradient_accumulation_steps
@@ -61,6 +78,7 @@ def train(args, model, train_features, benchmarks):
                 scheduler.step()
                 model.zero_grad()
                 wandb.log({'loss': loss.item()}, step=num_steps)
+                print('loss', loss.item())
 
             if (num_steps % args.evaluation_steps == 0 and step % args.gradient_accumulation_steps == 0):
                 for tag, features in benchmarks:
@@ -70,6 +88,9 @@ def train(args, model, train_features, benchmarks):
     for tag, features in benchmarks:
         f1, output = evaluate(args, model, features, tag=tag)
         wandb.log(output, step=num_steps)
+        body['content'] = str(output)+" F1: "+str(f1)
+        # send WxPusher
+        ret = requests.post('http://wxpusher.zjiecode.com/api/send/message', data=json.dumps(body), headers=headers)
 
 
 def evaluate(args, model, features, tag='dev'):
@@ -114,19 +135,19 @@ def evaluate(args, model, features, tag='dev'):
 def main():
     parser = argparse.ArgumentParser()
 
-    dataset = "./dataset/literature"
-    # dataset = "./dataset/FinRE"
+    # dataset = "./dataset/literature"
+    dataset = "./dataset/FinRE"
     # parser.add_argument("--data_dir", default="./dataset/literature", type=str)
     parser.add_argument("--data_dir", default=dataset, type=str)
     if "literature" in dataset:
         parser.add_argument("--num_class", type=int, default=10)
     elif "FinRE" in dataset:
-        parser.add_argument("--num_class", type=int, default=42)
+        parser.add_argument("--num_class", type=int, default=44)
 
     # parser.add_argument("--num_class", type=int, default=10)
     # parser.add_argument("--num_class", type=int, default=44)
     parser.add_argument("--model_name_or_path",
-                        default="roberta-large", type=str)
+                        default="bert-base-chinese", type=str)
     # parser.add_argument("--input_format", default="typed_entity_marker_punct", type=str,
     #                     help="in [entity_mask, entity_marker, entity_marker_punct, typed_entity_marker, typed_entity_marker_punct]")
     parser.add_argument("--input_format", default="typed_entity_marker", type=str,
@@ -142,11 +163,11 @@ def main():
 
     parser.add_argument("--train_batch_size", default=64, type=int,
                         help="Batch size for training.")
-    parser.add_argument("--test_batch_size", default=64, type=int,
+    parser.add_argument("--test_batch_size", default=32, type=int,
                         help="Batch size for testing.")
-    parser.add_argument("--learning_rate", default=3e-5, type=float,
+    parser.add_argument("--learning_rate", default=5e-5, type=float,
                         help="The initial learning rate for Adam.")
-    parser.add_argument("--gradient_accumulation_steps", default=2, type=int,
+    parser.add_argument("--gradient_accumulation_steps", default=1, type=int,
                         help="Number of updates steps to accumulate the gradients for, before performing a backward/update pass.")
     parser.add_argument("--adam_epsilon", default=1e-6, type=float,
                         help="Epsilon for Adam optimizer.")
@@ -154,7 +175,7 @@ def main():
                         help="Max gradient norm.")
     parser.add_argument("--warmup_ratio", default=0.1, type=float,
                         help="Warm up ratio for Adam.")
-    parser.add_argument("--num_train_epochs", default=10.0, type=float,
+    parser.add_argument("--num_train_epochs", default=30.0, type=float,
                         help="Total number of training epochs to perform.")
     parser.add_argument("--seed", type=int, default=42,
                         help="random seed for initialization")
@@ -185,9 +206,18 @@ def main():
     model = REModel(args, config)
     model.to(0)
 
-    train_file = os.path.join(args.data_dir, "train.json")
-    dev_file = os.path.join(args.data_dir, "dev.json")
-    test_file = os.path.join(args.data_dir, "test.json")
+    train_file = os.path.join(args.data_dir, "train2.json")
+    dev_file = os.path.join(args.data_dir, "dev2.json")
+    test_file = os.path.join(args.data_dir, "test2.json")
+
+    # train_file = os.path.join(args.data_dir, "dev2.json")
+    # dev_file = os.path.join(args.data_dir, "dev2.json")
+    # test_file = os.path.join(args.data_dir, "dev2.json")
+
+    # train_file = os.path.join(args.data_dir, "train.json")
+    # dev_file = os.path.join(args.data_dir, "dev.json")
+    # test_file = os.path.join(args.data_dir, "test.json")
+
 
     processor = MathProcessor(args, tokenizer)
     train_features = processor.read(train_file)
@@ -208,4 +238,5 @@ def main():
         time_elapsed // 60, time_elapsed % 60))
 
 if __name__ == "__main__":
+    print(1)
     main()

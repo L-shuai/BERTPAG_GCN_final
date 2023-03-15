@@ -3,8 +3,13 @@ from tqdm import tqdm
 import ujson as json
 import numpy as np
 import constant
+import stanza
+import math
+# stanza.download('zh', verbose=False)
+# nlp = spacy.load('en_core_web_sm')
+# nlp = stanza.Pipeline(lang='zh', processors='tokenize,mwt,pos,lemma,depparse',download_method=None)
 
-
+nlp = stanza.Pipeline('zh', processors='tokenize,lemma,pos,depparse', verbose=False,download_method=None)
 def convert_token(token):
     if (token.lower() == '-lrb-'):
         return '('
@@ -103,7 +108,27 @@ class MathProcessor(Processor):
 
             tokens = d['token']
             tokens = [convert_token(token) for token in tokens]
+            text = ''.join(tokens)
+            # print(text)
+            # matrix = dependency_adj_matrix(str(text))
+            matrix_str = d['matrix']
+            matrix_shape = int(math.sqrt(len(matrix_str)))
+            matrix = np.zeros((matrix_shape, matrix_shape)).astype('float32')
+            index = 0
+            for i in range(0, matrix_shape):
+                for j in range(0, matrix_shape):
+                    matrix[i][j] = float(matrix_str[index])
+                    index += 1
 
+            # print(matrix)
+            # 统一最大长度（180）的max_len_matrix
+            max_len_matrix = np.zeros((180, 180)).astype('float32')
+            for i in range(0, 180):
+                for j in range(0, 180):
+                    if i < matrix_shape and j < matrix_shape:
+                        max_len_matrix[i][j] = matrix[i][j]
+
+            # print(max_len_matrix)
             input_ids, new_ss, new_os = self.tokenize(
                 tokens, d['subj_type'], d['obj_type'], ss, se, os, oe)
             rel = self.LABEL_TO_ID[d['relation']]
@@ -134,9 +159,162 @@ class MathProcessor(Processor):
                 'oe': new_os + oe - os,
                 "mask": _mask,
                 "pos1": _pos1,
-                "pos2": _pos2
+                "pos2": _pos2,
+                "matrix":max_len_matrix
             }
 
             features.append(feature)
         return features
 
+
+def test_read(file_in):
+    features = []
+    with open(file_in, "r") as fh:
+        data = json.load(fh)
+
+    for d in data: #d是dict
+        print(d)
+        ss, se = d['subj_start'], d['subj_end']
+        os, oe = d['obj_start'], d['obj_end']
+
+        tokens = d['token']
+        tokens = [convert_token(token) for token in tokens]
+        text = ''.join(tokens)
+        print(text)
+        print(len(text))
+        matrix_str = d['matrix']
+        matrix_shape = int(math.sqrt(len(matrix_str)))
+        matrix = np.zeros((matrix_shape, matrix_shape)).astype('float32')
+        index = 0
+        for i in range(0,matrix_shape):
+            for j in range(0,matrix_shape):
+                matrix[i][j]=float(matrix_str[index])
+                index+=1
+
+        print(matrix)
+        # 统一最大长度（180）的max_len_matrix
+        max_len_matrix = np.zeros((180, 180)).astype('float32')
+        for i in range(0,180):
+            for j in range(0,180):
+                if i<matrix_shape and j<matrix_shape:
+                    max_len_matrix[i][j] = matrix[i][j]
+
+        print(max_len_matrix)
+
+
+        # input_ids, new_ss, new_os = self.tokenize(
+        #     tokens, d['subj_type'], d['obj_type'], ss, se, os, oe)
+        # rel = self.LABEL_TO_ID[d['relation']]
+
+        max_length = 180
+        max_pos_length = 100
+
+        # p1, p2 = sorted((new_ss, new_os))
+        # _mask = np.zeros(max_length, dtype=np.long)
+        # _mask[p2 + 2: len(input_ids)] = 3
+        # _mask[p1 + 2: p2 + 2] = 2
+        # _mask[:p1 + 2] = 1
+        # _mask[len(input_ids):] = 0
+        #
+        # _pos1 = np.arange(max_length) - new_ss + max_pos_length
+        # _pos2 = np.arange(max_length) - new_os + max_pos_length
+        # _pos1[_pos1 > 2 * max_pos_length] = 2 * max_pos_length
+        # _pos1[_pos1 < 0] = 0
+        # _pos2[_pos2 > 2 * max_pos_length] = 2 * max_pos_length
+        # _pos2[_pos2 < 0] = 0
+        #
+        # feature = {
+        #     'input_ids': input_ids,
+        #     'labels': rel,
+        #     'ss': new_ss,
+        #     'os': new_os,
+        #     'se': new_ss + se - ss,
+        #     'oe': new_os + oe - os,
+        #     "mask": _mask,
+        #     "pos1": _pos1,
+        #     "pos2": _pos2
+        # }
+        #
+        # features.append(feature)
+    return features
+
+def dependency_adj_matrix(text):
+    # https://spacy.io/docs/usage/processing-text
+    document = nlp(text)
+
+    seq_len = 0
+    for sent in document.sentences:
+        seq_len += len(sent.to_dict())
+    print("seq_len:",seq_len)
+    matrix = np.zeros((seq_len, seq_len)).astype('float32')
+
+    # seq_len = len(sent_dict)
+    for sent in document.sentences:
+        for word in sent.words:
+            node_id = word.id
+            node = word.text
+            head_id = word.head
+            head = sent.words[word.head - 1].text if word.head > 0 else 'root'
+            deprel = word.deprel
+
+
+            # 主对角线
+            matrix[node_id - 1][node_id - 1] = 1
+            if node_id <= seq_len and head_id > 0:
+                    matrix[node_id - 1][head_id - 1] = 1
+                    matrix[head_id - 1][node_id - 1] = 1
+    return matrix
+
+def write_adj_matrix(file_in,file_out):
+    with open(file_in, "r") as fh:
+        data = json.load(fh)
+    beginTag = '['
+    context=''
+    with open(file_out, 'a', encoding='utf-8') as f:
+        f.write(beginTag)
+    for d in data: #d是dict
+        print(d)
+        tokens = d['token']
+        tokens = [convert_token(token) for token in tokens]
+        text = ''.join(tokens)
+        print(text)
+        matrix = dependency_adj_matrix(str(text))
+        print(matrix.shape)
+        print(matrix)
+        matrix_str = ''
+        for i in range(0,matrix.shape[0]):
+            for j in range(0,matrix.shape[1]):
+                matrix_str+=str(matrix[i][j])[0]
+        d['matrix'] = matrix_str
+        json_str = json.dumps(d)+','
+        context+=json_str
+        context+='\n'
+        # with open(file_out, 'a', encoding='utf-8', newline='\n') as f:
+        #     f.write(json_str)
+    context = context.strip(',\n')
+    with open(file_out, 'a', encoding='utf-8', newline='\n') as f:
+        f.write(context)
+    endTag = ']'
+    with open(file_out, 'a', encoding='utf-8') as f:
+        f.write(endTag)
+if __name__ == '__main__':
+    file_in = "./dataset/literature/dev.json"
+    file_out = "./dataset/literature/dev2.json"
+
+    # file_in = "./dataset/literature/test.json"
+    # file_out = "./dataset/literature/test2.json"
+
+    # file_in = "./dataset/literature/train.json"
+    # file_out = "./dataset/literature/train2.json"
+
+    # file_in = "./dataset/FinRE/dev.json"
+    # file_out = "./dataset/FinRE/dev2.json"
+
+    # file_in = "./dataset/FinRE/test.json"
+    # file_out = "./dataset/FinRE/test2.json"
+
+    # file_in = "./dataset/FinRE/train.json"
+    # file_out = "./dataset/FinRE/train2.json"
+
+    # test_read(file_out)
+    write_adj_matrix(file_in,file_out)

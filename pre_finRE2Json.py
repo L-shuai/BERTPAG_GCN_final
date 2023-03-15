@@ -64,9 +64,9 @@ def read_text(fname):
         sentence = arrs[3]
         print(sentence)
         subj_start = sentence.index(subj)
-        subj_end = subj_start + len(subj)
+        subj_end = subj_start + len(subj)-1
         obj_start = sentence.index(obj)
-        obj_end = obj_start + len(obj)
+        obj_end = obj_start + len(obj)-1
         word_list = str(list(sentence))
         word_list = word_list.replace("'", '"')
         id+=1
@@ -137,5 +137,5 @@ if __name__ == '__main__':
     'dev': './dataset/FinRE/dev.txt'
     }
     # print(fname['dev'])
-    # read_text(fname['train'])
-    get_labels(fname['dev'])
+    read_text(fname['train'])
+    # get_labels(fname['dev'])

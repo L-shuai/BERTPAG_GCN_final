@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="lishuai@219.216.64.203:22" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="lishuai@219.216.91.55:22" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="lishuai@219.216.64.203:22">
+      <paths name="127.0.0.1">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/lishuai/PycharmProjects/RemoteCode/BERTPAG" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ls/PycharmProjects/RemoteCode/BERTPAG" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ls@127.0.0.1:12345 password">
+      <paths name="lishuai@209.141.58.148:9923">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="shanghai">
+      <paths name="lishuai@219.216.91.55:22">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/ls/PycharmProjects/RemoteCode/BERTPAG" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/lishuai/remoteCode/PycharmProjects/BERTPAG_GCN_final" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

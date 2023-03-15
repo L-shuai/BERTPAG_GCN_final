@@ -25,6 +25,7 @@ def collate_fn(batch):
     pos1 = [f["pos1"] for f in batch]
     pos2 = [f["pos2"] for f in batch]
     mask = [f["mask"] for f in batch]
+    matrix = [f["matrix"] for f in batch]
     input_ids = torch.tensor(input_ids, dtype=torch.long)
     input_mask = torch.tensor(input_mask, dtype=torch.float)
     labels = torch.tensor(labels, dtype=torch.long)
@@ -35,5 +36,8 @@ def collate_fn(batch):
     os = torch.tensor(os, dtype=torch.long)
     se = torch.tensor(se, dtype=torch.long)
     oe = torch.tensor(oe, dtype=torch.long)
-    output = (input_ids, input_mask, labels, ss, os, se, oe, pos1, pos2, mask)
+    matrix = torch.tensor(matrix, dtype=torch.float)
+
+    # 新增matrix
+    output = (input_ids, input_mask, labels, ss, os, se, oe, pos1, pos2, mask,matrix)
     return output
